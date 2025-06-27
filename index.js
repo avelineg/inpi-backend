@@ -9,7 +9,7 @@ const INPI_CLIENT_SECRET = process.env.INPI_CLIENT_SECRET;
 let inpiToken = null;
 let inpiTokenExpires = 0;
 
-// Fonction pour obtenir un token OAuth2 INPI avec logs
+// Fonction pour obtenir un token OAuth2 INPI (endpoint mis à jour)
 async function getInpiToken() {
   const now = Date.now();
   if (inpiToken && inpiTokenExpires > now + 60 * 1000) {
@@ -23,7 +23,10 @@ async function getInpiToken() {
   params.append('client_secret', INPI_CLIENT_SECRET);
 
   try {
-    const response = await axios.post('https://api.inpi.fr/api/oauth/token', params);
+    // Auth endpoint conforme à la doc INPI
+    const response = await axios.post('https://api.inpi.fr/token', params, {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    });
     inpiToken = response.data.access_token;
     inpiTokenExpires = now + response.data.expires_in * 1000;
     console.log('[INPI] Nouveau token reçu, expire dans', response.data.expires_in, 'secondes');
@@ -34,12 +37,12 @@ async function getInpiToken() {
   }
 }
 
-// Route d'accueil pour rassurer Render et l'utilisateur
+// Route d'accueil simple pour Render
 app.get('/', (req, res) => {
   res.send('INPI backend is running. Use /api/inpi/:siren');
 });
 
-// Exemple de route pour récupérer les infos INPI sur un SIREN
+// Route API Entreprises INPI (SIREN)
 app.get('/api/inpi/:siren', async (req, res) => {
   try {
     const token = await getInpiToken();
@@ -47,16 +50,19 @@ app.get('/api/inpi/:siren', async (req, res) => {
     const url = `https://api.inpi.fr/entreprises/sirene/V3/siren/${siren}`;
     console.log('[INPI] Requête vers', url);
     const resp = await axios.get(url, {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json'
+      }
     });
     res.json(resp.data);
   } catch (e) {
-    console.error('[INPI] Erreur sur /api/inpi/:siren :', e.message);
-    res.status(500).json({ error: 'INPI API error', details: e.message });
+    console.error('[INPI] Erreur sur /api/inpi/:siren :', e.response ? e.response.data : e.message);
+    res.status(500).json({ error: 'INPI API error', details: e.response ? e.response.data : e.message });
   }
 });
 
-// Utilise le port fourni par Render, ou 3001 par défaut en local
+// Utilise le port Render OU 3001 en local
 const port = process.env.PORT || 3001;
 app.listen(port, () => {
   console.log(`INPI proxy server started on http://localhost:${port}`);

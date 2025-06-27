@@ -24,10 +24,8 @@ async function fetchInpiToken() {
       { headers: { 'Content-Type': 'application/json' } }
     );
 
-    // Selon la doc INPI, le retour contient un champ 'token' et 'expires_in' (en secondes)
     const { token, expires_in } = response.data;
     inpiToken = token;
-    // On prend une petite marge (ex : 30 secondes avant l’expiration réelle)
     tokenExpiresAt = Date.now() + (expires_in - 30) * 1000;
     return inpiToken;
   } catch (error) {
@@ -63,18 +61,40 @@ app.post('/token', async (req, res) => {
   }
 });
 
-// Exemple : proxy vers un endpoint INPI (complète selon la doc INPI)
+// Route pour la fiche d'une entreprise par SIREN (nouvelle URL INPI)
 app.get('/inpi/entreprise/:siren', async (req, res) => {
   try {
     const token = await getInpiToken();
     const { siren } = req.params;
-    // Exemple d’URL INPI, ajuste selon le vrai endpoint
-    const url = `https://registre-national-entreprises.inpi.fr/api/entreprises/${siren}`;
+    const url = `https://registre-national-entreprises.inpi.fr/api/companies/${siren}`;
 
     const response = await axios.get(url, {
       headers: { Authorization: `Bearer ${token}` }
     });
 
+    res.json(response.data);
+  } catch (error) {
+    res.status(error.response?.status || 500).json({
+      error: error.response?.data || error.message
+    });
+  }
+});
+
+// Route pour recherche floue par raison sociale (companyName)
+app.get('/inpi/entreprises', async (req, res) => {
+  try {
+    const token = await getInpiToken();
+    const { raisonSociale } = req.query;
+    if (!raisonSociale) {
+      return res.status(400).json({ error: "Le paramètre 'raisonSociale' est requis" });
+    }
+    const url = `https://registre-national-entreprises.inpi.fr/api/companies?companyName=${encodeURIComponent(raisonSociale)}`;
+
+    const response = await axios.get(url, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    // La réponse est un tableau d'entreprises potentielles, retourne tel quel
     res.json(response.data);
   } catch (error) {
     res.status(error.response?.status || 500).json({

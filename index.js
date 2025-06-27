@@ -3,8 +3,8 @@ const express = require('express');
 const axios = require('axios');
 const app = express();
 
-const INPI_CLIENT_ID = "a.guenneugues@cmexpert.fr";
-const INPI_CLIENT_SECRET = "Cmexpert68!!!";
+const INPI_CLIENT_ID = process.env.INPI_CLIENT_ID;
+const INPI_CLIENT_SECRET = process.env.INPI_CLIENT_SECRET;
 
 // Ajout de logs pour vérifier la récupération des variables d'env
 console.log("[DEBUG] INPI_CLIENT_ID:", INPI_CLIENT_ID ? "(défini)" : "(NON défini)");

@@ -34,7 +34,7 @@ async function getInpiToken() {
   }
 }
 
-// Route d'accueil
+// Route d'accueil pour rassurer Render et l'utilisateur
 app.get('/', (req, res) => {
   res.send('INPI backend is running. Use /api/inpi/:siren');
 });

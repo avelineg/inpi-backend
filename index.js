@@ -41,3 +41,6 @@ const port = process.env.PORT || 3001;
 app.listen(port, () => {
   console.log(`Simple INPI login app running on http://localhost:${port}`);
 });
+
+console.log('INPI_USERNAME:', process.env.INPI_USERNAME);
+console.log('INPI_PASSWORD:', process.env.INPI_PASSWORD);

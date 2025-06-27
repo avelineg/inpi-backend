@@ -3,10 +3,12 @@ const express = require('express');
 const axios = require('axios');
 const app = express();
 
+app.use(express.json());
+
 const INPI_CLIENT_ID = process.env.INPI_CLIENT_ID;
 const INPI_CLIENT_SECRET = process.env.INPI_CLIENT_SECRET;
 
-app.get('/token', async (req, res) => {
+app.post('/token', async (req, res) => {
   try {
     const params = new URLSearchParams();
     params.append('grant_type', 'client_credentials');

@@ -42,6 +42,7 @@ app.get('/api/inpi/:siren', async (req, res) => {
   }
 });
 
+// Utilise le port fourni par Render, ou 3001 par défaut en local
 const port = process.env.PORT || 3001;
 app.listen(port, () => {
   console.log(`INPI proxy server started on http://localhost:${port}`);

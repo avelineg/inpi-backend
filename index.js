@@ -5,24 +5,26 @@ const app = express();
 
 app.use(express.json());
 
-const INPI_CLIENT_ID = process.env.INPI_CLIENT_ID;
-const INPI_CLIENT_SECRET = process.env.INPI_CLIENT_SECRET;
+const INPI_USERNAME = process.env.INPI_USERNAME;
+const INPI_PASSWORD = process.env.INPI_PASSWORD;
 
+// Route POST /token pour obtenir le token INPI
 app.post('/token', async (req, res) => {
   try {
-    const params = new URLSearchParams();
-    params.append('grant_type', 'client_credentials');
-    params.append('client_id', INPI_CLIENT_ID);
-    params.append('client_secret', INPI_CLIENT_SECRET);
+    const response = await axios.post(
+      'https://registre-national-entreprises.inpi.fr/api/sso/login',
+      {
+        username: INPI_USERNAME,
+        password: INPI_PASSWORD
+      },
+      {
+        headers: { 'Content-Type': 'application/json' }
+      }
+    );
 
-    const response = await axios.post('https://api.inpi.fr/token', params, {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-    });
+    // Renvoie la réponse complète de l'API INPI (token ou erreur)
+    res.json(response.data);
 
-    res.json({
-      access_token: response.data.access_token,
-      expires_in: response.data.expires_in
-    });
   } catch (error) {
     if (error.response) {
       res.status(error.response.status).json({
@@ -37,5 +39,5 @@ app.post('/token', async (req, res) => {
 
 const port = process.env.PORT || 3001;
 app.listen(port, () => {
-  console.log(`Simple INPI token app running on http://localhost:${port}`);
+  console.log(`Simple INPI login app running on http://localhost:${port}`);
 });
